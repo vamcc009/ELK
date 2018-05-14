@@ -1,0 +1,9 @@
+---
+
+- hosts: client
+  become: yes
+  vars_files:
+    - vars.yml
+  roles:
+    - {role: java}
+    - {role: client}

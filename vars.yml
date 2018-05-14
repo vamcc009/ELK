@@ -1,0 +1,8 @@
+---
+elasticsearch_ip: <server1 IP>
+logstash_private_ip: <server2 IP>
+log_location: syslog
+kibana_private_ip: <server3 IP>
+port: 80
+kibanauser: <username>
+kibanapassword: <password>

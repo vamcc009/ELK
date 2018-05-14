@@ -1,0 +1,11 @@
+[elasticsearch]
+<server1 IP>
+
+[logstash]
+<server2 IP>
+
+[kibana]
+<server3 IP>
+
+[client]
+<Slave IP>

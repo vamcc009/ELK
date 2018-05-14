@@ -1,0 +1,37 @@
+---
+
+- name: Add Elasticsearch GPG key into rpm
+  shell: rpm --import http://packages.elastic.co/GPG-KEY-elasticsearch
+
+- name: Adding Elasticsearch repo
+  copy:
+    src: elasticsearch.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 644
+
+- name: Install Elasticsearch
+  yum:
+    name: elasticsearch
+    state: present
+    update_cache: yes
+
+- name: update the Elastic search config file
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: 'network.host:'
+#  line: 'network.host: localhost'
+    line: 'network.host: _site_'
+
+- name: open the port 9200
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: 'http.port:'
+    line: 'http.port: 9200'
+
+- name: Start elasticsearch
+  service:
+    name: elasticsearch
+    state: started
+    enabled: true

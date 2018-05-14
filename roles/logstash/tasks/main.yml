@@ -1,0 +1,75 @@
+---
+
+- name: Add logstash GPG key into rpm
+  shell: rpm --import http://packages.elastic.co/GPG-KEY-elasticsearch
+
+- name: Adding logstash repo
+  copy:
+    src: logstash.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 644
+
+- name: Install logstash
+  yum:
+    name: logstash
+    state: present
+    update_cache: yes
+
+- name: update Logstash configurations
+  blockinfile:
+    path: /etc/pki/tls/openssl.cnf
+    block: |
+      [ v3_ca ]
+      subjectAltName = IP: {{ logstash_private_ip }}
+
+- name: Generate self signed certificates
+  shell: openssl req -config /etc/pki/tls/openssl.cnf -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout /etc/pki/tls/private/logstash-forwarder.key -out /etc/pki/tls/certs/logstash-forwarder.crt
+
+- name: create configuration files
+  file:
+    path: /etc/logstash/conf.d/{{item}}
+    owner: root
+    group: root
+    mode: 644
+    state: touch
+  with_items:
+    - 02-beats-input.conf
+    - 10-syslog-filter.conf
+    - 30-elasticsearch-output.conf
+
+# - name: beats input configurations
+#   file:
+#     src: beats-input.conf
+#     dest: /etc/logstash/conf.d/02-beats-input.conf
+#     state: file
+#     owner: root
+#     group: root
+#     mode: 644
+
+- name: syslog config file
+  template:
+    src: "{{item}}"
+    dest: /etc/logstash/conf.d/
+    owner: root
+    group: root
+    mode: 644
+  with_items:
+    - 02-beats-input.conf
+    - 10-syslog-filter.conf
+    - 30-elasticsearch-output.conf
+
+# - name: elastic search config file
+#   template:
+#     src: 30-elasticsearch-output.conf
+#     dest: /etc/logstash/conf.d/
+#     owner: root
+#     group: root
+#     mode: 644
+
+- name: start logstash service
+  service:
+    name: logstash
+    state: started
+    enabled: true

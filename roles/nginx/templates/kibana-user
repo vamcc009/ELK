@@ -1,0 +1,1 @@
+htpasswd -c /etc/nginx/htpasswd.users {{ kibanauser }}

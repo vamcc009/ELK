@@ -1,0 +1,12 @@
+---
+
+## Amazon linux Image by default will have java 7
+
+- name: Remove java 7
+  shell: yum remove java -y
+
+- name: Install openjdk-java 8
+  yum:
+    name: java-1.8.0-openjdk
+    state: present
+    update_cache: yes

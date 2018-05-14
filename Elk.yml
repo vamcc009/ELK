@@ -1,0 +1,26 @@
+---
+
+- hosts: elasticsearch
+  become: yes
+  vars_files:
+    - vars.yml
+  roles:
+    - {role: java}
+    - {role: elasticsearch}
+
+- hosts: logstash
+  become: yes
+  vars_files:
+    - vars.yml
+  roles:
+    - {role: java}
+    - {role: logstash}
+
+- hosts: kibana
+  become: yes
+  vars_files:
+    - vars.yml
+  roles:
+   - {role: java}
+   - {role: kibana}
+   - {role: nginx}

@@ -1,0 +1,57 @@
+---
+
+- name: Import GPG Key
+  shell: rpm --import http://packages.elastic.co/GPG-KEY-elasticsearch
+
+- name: Add Kibana repo
+  copy:
+    src: kibana.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 644
+
+- name: Install kibana
+  yum:
+    name: kibana
+    state: present
+    update_cache: yes
+
+
+- name: Update the Kibana Config file
+  lineinfile:
+    path: /opt/kibana/config/kibana.yml
+    regexp: 'server.host:'
+    #line: 'server.host: localhost'
+    line: 'server.host: 0.0.0.0'
+
+- name: Update the elasticsearch machine in the config
+  lineinfile:
+    path: /opt/kibana/config/kibana.yml
+    regexp: 'elasticsearch.url:'
+    line: 'elasticsearch.url: "http://{{ elasticsearch_ip }}:9200"'
+
+- name: Download sample dashboard
+  get_url: url=https://download.elastic.co/beats/dashboards/beats-dashboards-1.1.0.zip dest=/root/ mode=0600
+
+- name: change to home directoy
+  shell: cd /root/
+
+- name: Unzip the Sample dashboard
+  unarchive:
+    src: /root/beats-dashboards-1.1.0.zip
+    dest: /root/
+    remote_src: yes
+
+- name: Replace the localhost with elasticsearch ip
+  lineinfile:
+    dest: /root/beats-dashboards-1.1.0/load.sh
+    regexp: '^(.*)ELASTICSEARCH=http://localhost:9200'
+    line: ELASTICSEARCH=http://{{ elasticsearch_ip }}:9200
+    backrefs: yes
+
+- name: start kibana
+  service:
+    name: kibana
+    state: started
+    enabled: true

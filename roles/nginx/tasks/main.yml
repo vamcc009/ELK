@@ -1,0 +1,73 @@
+---
+
+- name: Install epel-release
+  yum:
+    name: epel-release
+    state: present
+    update_cache: yes
+
+- name: Install Nginx and Httpd tools
+  yum:
+    name: "{{item}}"
+    state: present
+    update_cache: yes
+  with_items:
+    - nginx
+    - httpd-tools
+
+# - name: create nginx conf file
+#   file:
+#     path: /etc/nginx/nginx.conf
+#     owner: root
+#     group: root
+#     mode: 644
+#     state: touch
+
+- name: Create Nginx file
+  template:
+    src: nginx.conf
+    dest: /etc/nginx/
+    owner: root
+    group: root
+    mode: 644
+
+- name: Nginx for Kibana
+  template:
+    src: kibana.conf
+    dest: /etc/nginx/conf.d/
+    owner: root
+    group: root
+    mode: 644
+
+# - name: start nginx
+#   service:
+#     name: nginx
+#     state: started
+#     #daemon_reload: yes
+
+- name: Install Python Pexpect
+  command: pip install pexpect
+
+- name: create kibana admin user
+  template:
+    src: kibana-user
+    dest: /opt/
+    owner: root
+    group: root
+    mode: 744
+
+- name: create kibana-user
+  expect:
+    command: bash /opt/kibana-user
+    responses:
+      'New password:' : "{{ kibanauser }}"
+      'Re-type new password:' : "{{ kibanapassword }}"
+
+- name: start nginx service
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: execute the script
+  shell: sh /root/beats-dashboards-1.1.0/load.sh
